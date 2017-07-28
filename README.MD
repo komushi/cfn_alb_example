@@ -6,3 +6,6 @@
 * Edit the yaml files where there are <your> values.
 * Upload the yaml files to your own bucket.
 * Use CloudFormation console wizard to deploy.
+
+## A more detailed example with 
+## Deploying Microservices with Amazon ECS, AWS CloudFormation, and an Application Load Balancer
