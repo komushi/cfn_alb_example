@@ -1,0 +1,39 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create CloudWatch and SNS Resources
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  EC2InstanceId:
+    Description: Specify the EC2 InstanceID
+    Type: String
+  Email:
+    Description: Email to receive alarm
+    Type: String
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${EnvironmentName}AlarmTopic
+      Subscription:
+      - Endpoint: !Ref Email
+        Protocol: email
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${EnvironmentName}Alarm
+      AlarmDescription: CPU alarm for my instance
+      AlarmActions:
+        - !Ref SNSTopic
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '1'
+      Threshold: '10'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref EC2InstanceId

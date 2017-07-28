@@ -1,0 +1,86 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create ElasticLoadBalancingV2 Resources
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  VpcId:
+    Description: Name of VPC
+    Type: AWS::EC2::VPC::Id
+  PublicSubnets:
+    Description: Choose which PublicSubnets the Applicaion Load Balancer should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+  SecurityGroup:
+    Description: Select the Security Group to apply to the Applicaion Load Balancer
+    Type: AWS::EC2::SecurityGroup::Id
+  EC2InstanceId:
+    Description: Specify the EC2 InstanceID
+    Type: String
+  ListenerCertificateArn:
+    Description: Specify the SSL certificate arn
+    Type: String
+Resources:
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AlbTargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}LoadBalancer
+      Scheme: internet-facing
+      Subnets: !Ref PublicSubnets
+      SecurityGroups: 
+        - !Ref SecurityGroup
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}TargetGroup
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      Targets:
+        - Id: !Ref EC2InstanceId
+          Port: 80
+  SslAlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref SslAlbTargetGroup
+      LoadBalancerArn: !Ref SslApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref ListenerCertificateArn
+  SslApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}SslLoadBalancer
+      Scheme: internet-facing
+      Subnets: !Ref PublicSubnets
+      SecurityGroups: 
+        - !Ref SecurityGroup
+  SslAlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}SslTargetGroup
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      Targets:
+        - Id: !Ref EC2InstanceId
+          Port: 80
+Outputs:
+  ApplicationLoadBalancerDNS: 
+    Description: A reference to the DNS of the ApplicationLoadBalancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+  SslApplicationLoadBalancerDNS: 
+    Description: A reference to the DNS of the SSL ApplicationLoadBalancer
+    Value: !GetAtt SslApplicationLoadBalancer.DNSName

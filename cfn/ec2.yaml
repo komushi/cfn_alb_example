@@ -1,0 +1,49 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create EC2Instance Resources
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+  InstanceType: 
+    Description: Which instance type should we use to build the ECS cluster?
+    Type: String
+    Default: t2.medium
+
+  VPC:
+    Description: Choose which VPC this ECS cluster should be deployed to
+    Type: AWS::EC2::VPC::Id
+
+  PrivateSubnet:
+    Description: Choose which subnets this ECS cluster should be deployed to
+    Type: AWS::EC2::Subnet::Id
+
+  Ec2SecurityGroup:
+    Description: Select the Security Group to use for the ECS cluster hosts
+    Type: AWS::EC2::SecurityGroup::Id
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      # drupal
+      ImageId: ami-b7c9f6d0
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref PrivateSubnet
+      SecurityGroupIds:
+        - !Ref Ec2SecurityGroup
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 50
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub ${EnvironmentName} EC2 host
+Outputs:
+  EC2InstanceId: 
+    Description: A reference to the EC2 Instance ID
+    Value: !Ref EC2Instance
