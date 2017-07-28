@@ -9,3 +9,5 @@
 
 ## A more detailed example with 
 ## Deploying Microservices with Amazon ECS, AWS CloudFormation, and an Application Load Balancer
+
+https://github.com/awslabs/ecs-refarch-cloudformation
